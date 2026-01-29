@@ -1,23 +1,23 @@
- TASK ONE
+-- TASK ONE
 SELECT
     airport_code AS airportCode,
-    UPPER(TRIM(airport_name > 'en')) AS airportCleanedName,
-    LOWER(city) AS cityCleaned,
-    LENGTH(airport_name) AS nameLength
-FROM airports
+    UPPER(TRIM(airport_name ->> 'en')) AS airportCleanedName,
+    LOWER(city ->> 'en') AS cityCleaned,
+    LENGTH(airport_name ->> 'en') AS nameLength
+FROM bookings.airports_data
 WHERE
     airport_name ILIKE '%international%'
-    AND (city IS NULL OR TRIM(city) = '')
-    AND LENGTH(airport_name) BETWEEN 10 AND 40
+    AND (city IS NULL OR TRIM(city ->> 'en') = '')
+    AND LENGTH(airport_name ->> 'en') BETWEEN 10 AND 40
 ORDER BY nameLength DESC
 LIMIT 15; 
   
 -- TASK TWO
 SELECT
-    CONCAT(departure_airport, '-', arrival_airport) AS route,
+    CONCAT(departure_airport, '-', arrival_airport) AS DepArr,
     COUNT(*) AS totalFlightsNumberOnTheRoute,
     AVG(CAST(flight_duration AS INTEGER)) AS averageFlightDuration
-FROM flights
+FROM bookings.flights
 WHERE
     actual_departure IS NOT NULL
     AND departure_airport IN ('JFK', 'LAX', 'SFO')
@@ -36,8 +36,8 @@ SELECT
     COUNT(tf.flight_id) AS totalFlightsTaken,
     SUM(tf.amount) AS totalAmountSpend,
     ROUND(AVG(CAST(tf.amount AS NUMERIC)), 2) AS averageAmountPerFlight
-FROM tickets t
-JOIN ticket_flights tf
+FROM bookings.tickets t
+JOIN bookings.ticket_flights tf
     ON t.ticket_no = tf.ticket_no
 WHERE
     t.passenger_name IS NOT NULL
