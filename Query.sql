@@ -1,4 +1,6 @@
 -- TASK ONE
+
+-- using the bookings.airports_data table
 SELECT
     airport_code AS airportCode,
     UPPER(TRIM(airport_name ->> 'en')) AS airportCleanedName,
@@ -6,9 +8,24 @@ SELECT
     LENGTH(airport_name ->> 'en') AS nameLength
 FROM bookings.airports_data
 WHERE
-    airport_name ILIKE '%international%'
-    AND (city IS NULL OR TRIM(city ->> 'en') = '')
+    airport_name ->> 'en' ILIKE '%international%'
+    AND city IS NULL
     AND LENGTH(airport_name ->> 'en') BETWEEN 10 AND 40
+ORDER BY nameLength DESC
+LIMIT 15; 
+
+-- using the bookings.airports view
+
+SELECT
+    airport_code AS airportCode,
+    UPPER(TRIM(airport_name)) AS airportCleanedName,
+    LOWER(city) AS cityCleaned,
+    LENGTH(airport_name) AS nameLength
+FROM bookings.airports
+WHERE
+    airport_name ILIKE '%international%'
+    AND city IS NULL
+    AND LENGTH(airport_name) BETWEEN 10 AND 40
 ORDER BY nameLength DESC
 LIMIT 15; 
   
@@ -16,7 +33,7 @@ LIMIT 15;
 SELECT
     CONCAT(departure_airport, '-', arrival_airport) AS DepArr,
     COUNT(*) AS totalFlightsNumberOnTheRoute,
-    AVG(CAST(flight_duration AS INTEGER)) AS averageFlightDuration
+    AVG(EXTRACT(EPOCH FROM(actual_arrival - actual_departure))/60) AS averageFlightDuration
 FROM bookings.flights
 WHERE
     actual_departure IS NOT NULL
@@ -26,7 +43,7 @@ GROUP BY
     arrival_airport
 HAVING
     COUNT(*) >= 5
-    AND AVG(CAST(flight_duration AS INTEGER)) <> 0
+    AND AVG(EXTRACT(EPOCH FROM(actual_arrival - actual_departure))/60) <> 0
 LIMIT 10;
 
 -- TASK  THREE
@@ -46,6 +63,5 @@ WHERE
 GROUP BY
     UPPER(t.passenger_name)
 HAVING
-    COUNT(tf.flight_id) > 1
+    COUNT(t.passenger_id) > 1
 LIMIT 100;
-
